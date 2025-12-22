@@ -1,0 +1,7 @@
+__pycache__/
+*.db
+srv_*.png
+temp_stego.png
+server_temp_*.png
+venv/
+.vscode/
