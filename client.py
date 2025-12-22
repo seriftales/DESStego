@@ -33,7 +33,7 @@ class ChatClient:
         self.init_login_ui()
 
     def init_local_db(self):
-        """Her kullanıcı için mesajları saklayan yerel DB"""
+        """Local DB storing messages for each user"""
         self.db_path = f"history_{self.username}.db"
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
@@ -62,7 +62,7 @@ class ChatClient:
         cursor = conn.cursor()
         cursor.execute("SELECT sender, content, timestamp FROM messages WHERE contact=? ORDER BY timestamp ASC", (contact,))
         for sender, content, ts in cursor.fetchall():
-            display_name = "Ben" if sender == self.username else sender
+            display_name = "Me" if sender == self.username else sender
             self.chat_area.insert(tk.END, f"[{ts[11:16]}] {display_name}: {content}\n")
         
         self.chat_area.see(tk.END)
@@ -78,8 +78,8 @@ class ChatClient:
         self.entry_password = ctk.CTkEntry(self.login_frame, show="*", placeholder_text="Password", width=200)
         self.entry_password.grid(row=2, column=0, columnspan=2, padx=20, pady=5)
         
-        ctk.CTkButton(self.login_frame, text="Select Stego Image", command=self.select_image).grid(row=3, column=0, columnspan=2, pady=10)
-        self.lbl_img_status = ctk.CTkLabel(self.login_frame, text="No image", text_color="gray")
+        ctk.CTkButton(self.login_frame, text="Select Image", command=self.select_image).grid(row=3, column=0, columnspan=2, pady=10)
+        self.lbl_img_status = ctk.CTkLabel(self.login_frame, text="No image selected", text_color="gray")
         self.lbl_img_status.grid(row=4, column=0, columnspan=2)
         
         ctk.CTkButton(self.login_frame, text="Register", command=self.register_action, fg_color="#1f538d").grid(row=5, column=0, pady=20, padx=10)
@@ -89,20 +89,20 @@ class ChatClient:
         self.login_frame.destroy()
         self.init_local_db()
         
-        # --- SIDEBAR (Sekmeli) ---
+        # --- SIDEBAR (Tabbed) ---
         self.sidebar = ctk.CTkFrame(self.main_container, width=250, corner_radius=0)
         self.sidebar.pack(side=tk.LEFT, fill=tk.Y)
         
         self.tabview = ctk.CTkTabview(self.sidebar, width=230)
         self.tabview.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        self.tabview.add("Online Users")
-        self.tabview.add("All Users ")
+        self.tabview.add("Active")
+        self.tabview.add("All")
         
-        self.list_active = tk.Listbox(self.tabview.tab("Aktif"), bg="#2b2b2b", fg="white", borderwidth=0, highlightthickness=0)
+        self.list_active = tk.Listbox(self.tabview.tab("Active"), bg="#2b2b2b", fg="white", borderwidth=0, highlightthickness=0)
         self.list_active.pack(fill=tk.BOTH, expand=True)
         self.list_active.bind('<<ListboxSelect>>', lambda e: self.on_user_selected(self.list_active))
         
-        self.list_all = tk.Listbox(self.tabview.tab("Tümü"), bg="#2b2b2b", fg="white", borderwidth=0, highlightthickness=0)
+        self.list_all = tk.Listbox(self.tabview.tab("All"), bg="#2b2b2b", fg="white", borderwidth=0, highlightthickness=0)
         self.list_all.pack(fill=tk.BOTH, expand=True)
         self.list_all.bind('<<ListboxSelect>>', lambda e: self.on_user_selected(self.list_all))
         
@@ -112,7 +112,7 @@ class ChatClient:
         self.chat_container = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.chat_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        self.lbl_chat_with = ctk.CTkLabel(self.chat_container, text="Messages", font=("Helvetica", 16, "bold"))
+        self.lbl_chat_with = ctk.CTkLabel(self.chat_container, text="Select a user to chat", font=("Helvetica", 16, "bold"))
         self.lbl_chat_with.pack(pady=(0, 10))
         
         self.chat_area = scrolledtext.ScrolledText(self.chat_container, state='disabled', bg="#333333", fg="white")
@@ -120,28 +120,28 @@ class ChatClient:
         
         input_row = ctk.CTkFrame(self.chat_container, fg_color="transparent")
         input_row.pack(fill=tk.X)
-        self.entry_msg = ctk.CTkEntry(input_row, placeholder_text="Write Message")
+        self.entry_msg = ctk.CTkEntry(input_row, placeholder_text="Type your message...")
         self.entry_msg.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
         self.entry_msg.bind("<Return>", lambda e: self.send_message())
-        ctk.CTkButton(input_row, text="Gönder", command=self.send_message, width=100).pack(side=tk.RIGHT)
+        ctk.CTkButton(input_row, text="Send", command=self.send_message, width=100).pack(side=tk.RIGHT)
 
     def on_user_selected(self, listbox):
         selection = listbox.curselection()
         if selection:
             self.selected_user = listbox.get(selection[0])
-            self.lbl_chat_with.configure(text=f" Message to {self.selected_user}")
+            self.lbl_chat_with.configure(text=f"Chatting with: {self.selected_user}")
             self.load_chat_history(self.selected_user)
 
     def send_message(self):
         if not self.selected_user:
-            messagebox.showwarning("Alert ! Choose a user first")
+            messagebox.showwarning("Warning", "Please select a user first!")
             return
         msg = self.entry_msg.get()
         if msg:
             enc = utils.des_encrypt(msg, self.password)
             self.client_socket.send(f"MSG {self.selected_user} {enc}".encode('utf-8'))
             self.save_message(self.selected_user, self.username, msg)
-            self.load_chat_history(self.selected_user) # Ekranı tazele
+            self.load_chat_history(self.selected_user) 
             self.entry_msg.delete(0, tk.END)
 
     def listen_server(self):
@@ -153,15 +153,12 @@ class ChatClient:
                 if data.startswith("INCOMING"):
                     _, sender, enc = data.split(' ', 2)
                     plain = utils.des_decrypt(enc, self.password)
-                    # Mesajı yerel DB'ye kaydet
                     self.save_message(sender, sender, plain)
                     
-                    # Eğer o an o kişiyle konuşuyorsak ekranı tazele
                     if self.selected_user == sender:
                         self.load_chat_history(sender)
                     else:
-                        # Burada bir bildirim sistemi eklenebilir
-                        print(f"Yeni mesaj: {sender}")
+                        print(f"New message from: {sender}")
                         
                 elif data.startswith("LIST_RESULT"):
                     content = data.split(' ', 1)[1]
@@ -174,9 +171,10 @@ class ChatClient:
                     self.list_active.delete(0, tk.END)
                     for u in active_u_str.split(','):
                         if u and u != self.username: self.list_active.insert(tk.END, u)
-            except: break
+            except: 
+                print("Connection lost.")
+                break
 
-    # --- DİĞER FONKSİYONLAR (LOGIN/REGISTER/REFRESH) AYNI KALDI ---
     def select_image(self):
         path = filedialog.askopenfilename()
         if path:
@@ -191,7 +189,8 @@ class ChatClient:
     def register_action(self):
         user, pwd = self.entry_username.get(), self.entry_password.get()
         if not user or len(pwd) != 8 or not self.selected_image_path:
-            messagebox.showerror("Error! Invalid Format"); return
+            messagebox.showerror("Error", "Missing information or invalid password length!")
+            return
         try:
             self.connect_socket()
             stego = "temp_stego.png"
@@ -205,7 +204,7 @@ class ChatClient:
                     threading.Thread(target=self.listen_server, daemon=True).start()
                     self.refresh_users()
             os.remove(stego)
-        except Exception as e: messagebox.showerror("Hata", str(e))
+        except Exception as e: messagebox.showerror("Error", str(e))
 
     def login_action(self):
         user, pwd = self.entry_username.get(), self.entry_password.get()
@@ -218,7 +217,7 @@ class ChatClient:
                 self.init_chat_ui()
                 threading.Thread(target=self.listen_server, daemon=True).start()
                 self.refresh_users()
-            else: messagebox.showerror("Error ! Login Failed")
+            else: messagebox.showerror("Error", "Login failed! Please check your credentials.")
         except Exception as e: messagebox.showerror("Error", str(e))
 
     def refresh_users(self):
