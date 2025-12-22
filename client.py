@@ -95,8 +95,8 @@ class ChatClient:
         
         self.tabview = ctk.CTkTabview(self.sidebar, width=230)
         self.tabview.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
-        self.tabview.add("Aktif")
-        self.tabview.add("Tümü")
+        self.tabview.add("Online Users")
+        self.tabview.add("All Users ")
         
         self.list_active = tk.Listbox(self.tabview.tab("Aktif"), bg="#2b2b2b", fg="white", borderwidth=0, highlightthickness=0)
         self.list_active.pack(fill=tk.BOTH, expand=True)
@@ -106,13 +106,13 @@ class ChatClient:
         self.list_all.pack(fill=tk.BOTH, expand=True)
         self.list_all.bind('<<ListboxSelect>>', lambda e: self.on_user_selected(self.list_all))
         
-        ctk.CTkButton(self.sidebar, text="Yenile", command=self.refresh_users).pack(pady=10)
+        ctk.CTkButton(self.sidebar, text="Refresh", command=self.refresh_users).pack(pady=10)
 
         # --- CHAT AREA ---
         self.chat_container = ctk.CTkFrame(self.main_container, fg_color="transparent")
         self.chat_container.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        self.lbl_chat_with = ctk.CTkLabel(self.chat_container, text="Bir kullanıcı seçin", font=("Helvetica", 16, "bold"))
+        self.lbl_chat_with = ctk.CTkLabel(self.chat_container, text="Messages", font=("Helvetica", 16, "bold"))
         self.lbl_chat_with.pack(pady=(0, 10))
         
         self.chat_area = scrolledtext.ScrolledText(self.chat_container, state='disabled', bg="#333333", fg="white")
@@ -120,7 +120,7 @@ class ChatClient:
         
         input_row = ctk.CTkFrame(self.chat_container, fg_color="transparent")
         input_row.pack(fill=tk.X)
-        self.entry_msg = ctk.CTkEntry(input_row, placeholder_text="Mesaj yazın...")
+        self.entry_msg = ctk.CTkEntry(input_row, placeholder_text="Write Message")
         self.entry_msg.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 10))
         self.entry_msg.bind("<Return>", lambda e: self.send_message())
         ctk.CTkButton(input_row, text="Gönder", command=self.send_message, width=100).pack(side=tk.RIGHT)
@@ -129,12 +129,12 @@ class ChatClient:
         selection = listbox.curselection()
         if selection:
             self.selected_user = listbox.get(selection[0])
-            self.lbl_chat_with.configure(text=f"{self.selected_user} ile Mesajlaşma")
+            self.lbl_chat_with.configure(text=f" Message to {self.selected_user}")
             self.load_chat_history(self.selected_user)
 
     def send_message(self):
         if not self.selected_user:
-            messagebox.showwarning("Uyarı", "Önce bir kullanıcı seçin!")
+            messagebox.showwarning("Alert ! Choose a user first")
             return
         msg = self.entry_msg.get()
         if msg:
@@ -181,7 +181,7 @@ class ChatClient:
         path = filedialog.askopenfilename()
         if path:
             self.selected_image_path = path
-            self.lbl_img_status.configure(text=f"Resim: {os.path.basename(path)}", text_color="cyan")
+            self.lbl_img_status.configure(text=f"Image: {os.path.basename(path)}", text_color="cyan")
 
     def connect_socket(self):
         if not self.client_socket:
@@ -191,7 +191,7 @@ class ChatClient:
     def register_action(self):
         user, pwd = self.entry_username.get(), self.entry_password.get()
         if not user or len(pwd) != 8 or not self.selected_image_path:
-            messagebox.showerror("Hata", "Eksik bilgi!"); return
+            messagebox.showerror("Error! Invalid Format"); return
         try:
             self.connect_socket()
             stego = "temp_stego.png"
@@ -218,8 +218,8 @@ class ChatClient:
                 self.init_chat_ui()
                 threading.Thread(target=self.listen_server, daemon=True).start()
                 self.refresh_users()
-            else: messagebox.showerror("Hata", "Giriş başarısız!")
-        except Exception as e: messagebox.showerror("Hata", str(e))
+            else: messagebox.showerror("Error ! Login Failed")
+        except Exception as e: messagebox.showerror("Error", str(e))
 
     def refresh_users(self):
         if self.client_socket: self.client_socket.send("LIST".encode('utf-8'))

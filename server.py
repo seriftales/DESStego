@@ -123,7 +123,7 @@ def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT)); server.listen(5)
-    print(f"[*] Server Aktif: {HOST}:{PORT}")
+    print(f"[*] Server Active: {HOST}:{PORT}")
     while True:
         c, a = server.accept()
         threading.Thread(target=handle_client, args=(c, a), daemon=True).start()
