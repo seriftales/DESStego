@@ -2,6 +2,7 @@ import binascii
 from Crypto.Cipher import DES
 from PIL import Image
 
+#Verilen düz metni (plaintext) DES algoritması (ECB Modu) ile şifreler.
 def des_encrypt(message, key):
     if len(key) != 8:
         raise ValueError("DES Anahtarı tam olarak 8 karakter olmalıdır!")
@@ -11,6 +12,7 @@ def des_encrypt(message, key):
     encrypted_data = des.encrypt(message.encode('utf-8'))
     return binascii.hexlify(encrypted_data).decode('utf-8')
 
+#Hexadecimal formatta gelen şifreli metni DES anahtarı ile çözer.
 def des_decrypt(encrypted_hex, key):
     if len(key) != 8:
         raise ValueError("DES Anahtarı tam olarak 8 karakter olmalıdır!")
@@ -26,6 +28,7 @@ def text_to_bits(text):
     bits = bin(int(binascii.hexlify(text.encode('utf-8')), 16))[2:]
     return bits.zfill(8 * ((len(bits) + 7) // 8))
 
+#LSB steganografi yöntemini kullanarak anahtarı bir resmin RGB piksellerinin en anlamsız bitlerine gömer.
 def hide_key_in_image(image_path, secret_key, output_path):
     img = Image.open(image_path)
     if img.mode != 'RGB': img = img.convert('RGB')
@@ -49,6 +52,7 @@ def hide_key_in_image(image_path, secret_key, output_path):
     encoded.save(output_path)
     return True
 
+#İşlenmiş resmin piksellerini tarayarak LSB yöntemiyle gizlenmiş bitleri toplar.
 def extract_key_from_image(image_path):
     img = Image.open(image_path)
     if img.mode != 'RGB': img = img.convert('RGB')

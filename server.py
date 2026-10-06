@@ -10,6 +10,7 @@ PORT = 12345
 BUFFER_SIZE = 4096
 online_clients = {}
 
+#Veritabanı başlatır
 def init_db():
     conn = sqlite3.connect('chat_server.db')
     cursor = conn.cursor()
@@ -18,6 +19,7 @@ def init_db():
     conn.commit()
     conn.close()
 
+#Bağlanan her bir istemci için ayrı bir thread içinde işlemleri yapar.
 def handle_client(client_socket, addr):
     current_user = None
     try:
@@ -113,20 +115,29 @@ def handle_client(client_socket, addr):
                 client_socket.send(payload.encode('utf-8'))
                 conn.close()
 
-    except: pass
+    except Exception as e:
+        print(f"[!] İstemci bağlantı hatası: {e}")
     finally:
         if current_user in online_clients: del online_clients[current_user]
         client_socket.close()
 
+#Server başlatır
 def start_server():
     init_db()
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((HOST, PORT)); server.listen(5)
+    server.bind((HOST, PORT))
+    server.listen(5)
     print(f"[*] Server Active: {HOST}:{PORT}")
-    while True:
-        c, a = server.accept()
-        threading.Thread(target=handle_client, args=(c, a), daemon=True).start()
+    
+    try:
+        while True:
+            c, a = server.accept()
+            threading.Thread(target=handle_client, args=(c, a), daemon=True).start()
+    except KeyboardInterrupt:
+        print("\n[*] Sunucu kapatılıyor...")
+    finally:
+        server.close()
 
 if __name__ == "__main__":
     start_server()

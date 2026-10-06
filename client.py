@@ -32,6 +32,7 @@ class ChatClient:
         
         self.init_login_ui()
 
+    #Giriş yapan kullanıcıya özel bir yerel veritabanı oluştur
     def init_local_db(self):
         """Local DB storing messages for each user"""
         self.db_path = f"history_{self.username}.db"
@@ -171,8 +172,8 @@ class ChatClient:
                     self.list_active.delete(0, tk.END)
                     for u in active_u_str.split(','):
                         if u and u != self.username: self.list_active.insert(tk.END, u)
-            except: 
-                print("Connection lost.")
+            except Exception as e:
+                print(f"[!] Sunucu ile bağlantı koptu veya hata oluştu: {e}")
                 break
 
     def select_image(self):
