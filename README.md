@@ -5,14 +5,14 @@ DESStego, kriptografi (DES) ve steganografiyi aynı mimaride buluşturan, eğiti
 Uygulama, kullanıcıların şifreleme anahtarlarını resim dosyalarının içine gömerek kayıt olmalarını ve aralarında şifreli mesajlaşmalarını sağlayan bir İstemci-Sunucu mimarisi sunar. Modern ve kullanıcı dostu arayüzü `customtkinter` ile tasarlanmıştır.
 
 
-## 🚀 Özellikler
+##  Özellikler
 
 * **LSB Steganografi:** Kullanıcıların gizli DES anahtarları, `Pillow` kütüphanesi kullanılarak LSB yöntemiyle `.jpg` dosyalarının içine gizlenir.
 * **DES Şifreleme:** İstemciler arası mesajlaşma paketleri, `pycryptodome` kullanılarak ECB modunda DES ile şifrelenir.
 * **Çoklu İstemci:** Sunucu, aynı anda birden fazla istemciyi `threading` modülü ile asenkron olarak idare eder ve çevrimdışı mesajları veritabanında bekletir.
 * **Yerel Mesaj Geçmişi:** Her istemci, kendi sohbet geçmişini lokaldedeki SQLite veritabanında saklar.
 
-## 🛠️ Kurulum (Linux)
+##  Kurulum (Linux)
 
 Not:Sisteminizde `python3-tk` (Tkinter) paketinin işletim sistemi seviyesinde kurulu olduğundan emin olun.
 
@@ -38,7 +38,7 @@ Projenin bağımlılıklarının izole edilmesi için sanal ortam (venv) kullan�
   pip install -r requirements.txt
   ```
 
-## ⚙️ Çalıştırma
+##  Çalıştırma
 
 1. **Sunucuyu Başlatın:**
 Merkezi yönlendirmeyi sağlamak için önce sunucuyu ayağa kaldırın:
@@ -53,7 +53,7 @@ Farklı terminaller açarak mesajlaşmayı test etmek için istemcileri başlat�
 ```
 Kayıt olurken bir resim dosyası seçmeniz ve 8 karakterlik bir şifre belirlemeniz zorunludur.
 
-## 📁 Dizin Yapısı 
+##  Dizin Yapısı 
 ```text
 DESStego/
 ├── client.py         # CustomTkinter arayüzlü mesajlaşma istemcisi
